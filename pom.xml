@@ -45,7 +45,7 @@
 <muleVersion>4.3.0</muleVersion>
 
 <applicationName>bookmyshow-api-singla</applicationName>
-
+<objectStoreV2>true</objectStoreV2>
 </cloudHubDeployment>
 				</configuration>
 			</plugin>
