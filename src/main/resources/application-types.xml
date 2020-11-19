@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="i" format="json">
+      <types:shape format="weave" example="examples/Offers.json"><![CDATA[%dw 2.0
+
+type i = Array<{|  city: String,   message: String|}> {"example": "[{\\\"city\\\":\\\"Delhi\\\",\\\"message\\\":\\\"10 % discount on ICICI bank credit card.\\\"},{\\\"city\\\":\\\"Mumbai\\\",\\\"message\\\":\\\"20 % discount on booking more than 10 tickets.\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="o" format="json">
+      <types:shape format="weave" example="examples/BookMovieResponse.json"><![CDATA[%dw 2.0
+
+type o = {|
+  message: String, 
+  eticket: String, 
+  ticketNumber: String, 
+  totalPrice: Number {"typeId": "int"}
+|} {"example": "{\\\"message\\\":\\\"Ticket Booked successfully (not really)!!\\\",\\\"eticket\\\":\\\"tick:234\\\",\\\"ticketNumber\\\":\\\"C1,C2,C3,C4\\\",\\\"totalPrice\\\":2000}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#c071a6eb-be53-41f6-9a9b-c9109df48884">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="i"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#ba94aaca-8860-45ee-8604-3cb0a93f2bc3">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="o"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

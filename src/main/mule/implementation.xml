@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+    <flow name="get:\offersList">
+		<file:read doc:name="Read" doc:id="4338c2a2-aa4c-436d-b951-7f2e325c5d85" config-ref="File_Config" path="${file.filePath}"/>
+		<ee:transform doc:name="Transform Message" doc:id="c071a6eb-be53-41f6-9a9b-c9109df48884" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload filter ((item, index) -> (item.city == vars.city)))>0)
+	
+	payload filter ((item, index) -> (item.city == vars.city))
+	else
+	[{
+		city: vars.city,
+	message: "There is no active offers for your city."	
+	}
+	
+	]
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Paylaod after transformation" doc:id="3badb4ce-7063-43c2-a96a-56dabd3bfd78" message="#[payload]"/>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="62b4b358-f8d3-4734-9aac-e8801ead9c19" type="FILE:CONNECTIVITY, FILE:ILLEGAL_PATH">
+				<ee:transform doc:name="Transform Message" doc:id="9e6b4212-5355-43c1-9b81-3c3067ed8f41" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="payload" doc:id="89c5a0e1-43db-4dcd-9ed0-070286299452" message="#[payload]"/>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="285a12f1-3f94-405d-8e2b-d02408e20576" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="2b4f5d9e-7ecb-439b-b226-3dd581c38d81" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="payload" doc:id="38553086-f284-43e9-8f8e-9c420647ac68" message="#[payload]"/>
+			</on-error-propagate>
+		</error-handler>
+    </flow>
+	<flow name="get:\moviesList">
+        <http:request method="GET" doc:name="Request" doc:id="a7304bad-8275-4b90-a30e-ac0ad6f9a799" config-ref="HTTP_Request_GetMovies" path="/api/movies">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : vars.client_id,
+	"client_id" : vars.client_secret
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="7711ac0d-47bf-4d0f-a8d6-62ebde48a265" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(vars.language != "noLanguage" and vars.movieName !="noMovie")
+payload  filter((item, index) -> (item.city  == vars.city and item.movieName == vars.movieName and item.language == vars.language ))
+else if(vars.language == "noLanguage" and vars.movieName =="noMovie")
+payload  filter((item, index) -> (item.city  == vars.city))
+else if (vars.language == "noLanguage" and vars.movieName !="noMovie")
+payload  filter((item, index) -> (item.city  == vars.city and item.movieName == vars.movieName))
+else
+payload  filter((item, index) -> (item.city  == vars.city and item.language == vars.language))
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="1da39c19-c409-40f8-93c0-aa6fc641ba95" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload)>0)
+payload map ( payload01 , indexOfPayload01 ) -> {
+     movieName: payload01.movieName default "",
+	 releasedate: payload01.releaseDate default "" ,
+	 language: payload01.language default "" ,
+	 rating: payload01.rating.numberDecimal default "" ,
+	 votes: payload01.votes default "",
+	 certificate: payload01.certificate default "",
+	 movieType: payload01.movieType default "",
+	 duration: payload01.duration default "" ,
+	 city: payload01.city default "" ,
+	 }
+	 
+	 else
+	 {
+	 	message:"Currently, There is no Movies running in your city."
+	 	
+	 }
+	 ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e452878d-0205-4b28-9d7c-fb347984316e" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="6c041a5d-3e79-46a5-8a5f-bab317b69732" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    </flow>
+    <flow name="GETTheatres" doc:id="6517084d-8300-4dcb-812a-ea8b5e267ae8" >
+		<logger level="INFO" doc:name="Logger" doc:id="8a3da0cc-573a-46c1-a8d9-6ff8d274980d" message="#[vars.client_id]"/>
+		<http:request method="GET" doc:name="Request" doc:id="2045b74f-3557-4ea0-9adf-a8512022449d" path="/api/theatre" config-ref="HTTP_Request_GetMovies">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : vars.client_id,
+	"client_id" : vars.client_secret
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="9f222e25-888c-4ff5-b814-7f3ec0e29f84" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(vars.language == "noLanguage")
+payload filter ((item, index) -> (item.city  == vars.city and item.movieName  == vars.movieName))
+else
+payload filter ((item, index) -> (item.city  == vars.city and item.movieName  == vars.movieName and item.language  == vars.language))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="3ac8fac4-55bd-462e-adc1-a4883f8ae249" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(sizeOf(payload)>0)
+payload map ( payload01 , indexOfPayload01 ) -> {
+	id: payload01.ID,
+	movieName: payload01.movieName default "",
+	language: payload01.language default "",
+	name: payload01.name default "",
+	availability: payload01.showtimes map ( payload02, index02) -> {
+            showtime: payload02.time,
+            availableSeats: payload02.seats
+    },
+	date: payload01.date as String default "",
+	location: payload01.location default "",
+	city: payload01.city default ""
+}
+else
+{
+	message: "No theatre found for your search."
+}
+
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c7134f07-2925-42bd-9098-3ed053e12f1c" message="helloo"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="24370833-c416-4848-9a57-eb6b6942b93a" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="8ec7ea03-4035-4f20-b1ed-53a627ec0b90" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="post:\BookTicket">
+		<ee:transform doc:name="Transform Message" doc:id="3783f840-3800-4093-a58a-d94da29335c2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://soap.training.mulesoft.com/
+---
+{
+	ns0#bookTicket:return: {
+		city: payload.city,
+		theatreName: vars.ID,
+		location: payload.location,
+		movieName: payload.movieName,
+		language: payload.language,
+		showDate: payload.showDate,
+		showTime: payload.showTime,
+		seatType: payload.seatType,
+		noOfSeats: payload.noOfSeats
+		
+		
+		
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="RequestPayload" doc:id="fda25a6d-d0ac-4a76-87cb-81a5214f7f2e" message="#[payload]"/>
+		<wsc:consume doc:name="Consume" doc:id="1cf9b3b7-c4ea-4853-a287-e224bd5989bc" config-ref="Web_Service_Consumer_Config" operation="bookTicket">
+		</wsc:consume>
+		<ee:transform doc:name="Transform Message" doc:id="ba94aaca-8860-45ee-8604-3cb0a93f2bc3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://soap.training.mulesoft.com/
+---
+if(vars.inputTickets>=vars.noOfTicket)
+
+{
+	message: (payload.body.ns0#bookTicketResponse.return.message) as String ++ " .Congrats You have got " ++ (vars.percent) as String ++ "% discount on your booking"  default "",
+	eticket: payload.body.ns0#bookTicketResponse.return.eticket default "",
+	ticketNumber: payload.body.ns0#bookTicketResponse.return.ticketNumber default "",
+	totalPrice: (payload.body.ns0#bookTicketResponse.return.totalPrice) - (payload.body.ns0#bookTicketResponse.return.totalPrice) as Number * vars.percent as Number /100  default 0
+}
+
+else
+
+{
+	message: payload.body.ns0#bookTicketResponse.return.message default "",
+	eticket: payload.body.ns0#bookTicketResponse.return.eticket default "",
+	ticketNumber: payload.body.ns0#bookTicketResponse.return.ticketNumber default "",
+	totalPrice: payload.body.ns0#bookTicketResponse.return.totalPrice default 0
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="9e6babf0-ffaf-4884-80dd-a461c8e74c58" message="#[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b24f08d2-b4a4-4db0-acf9-e8da04f09786" type="WSC:CONNECTIVITY">
+				<ee:transform doc:name="Transform Message" doc:id="910e91a9-a369-4a4a-81b3-9f5108b089c8" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="payload" doc:id="47e55204-d5b8-4bcf-bfd9-bd3700fc1bde" message="#[payload]"/>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e3151f0c-f32b-4100-94f4-c9575a612681" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="3284b7c6-896c-424b-ad04-bf8ad37ccf06" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="payload" doc:id="b926572e-7582-456c-a984-6db0d786c694" message="#[payload]"/>
+			</on-error-propagate>
+		</error-handler>
+    </flow>
+	<flow name="Get:\offersList" doc:id="556f1fb2-7fe2-4f24-b3b1-87072454f88e" >
+		<http:request method="GET" doc:name="Request" doc:id="076f3e68-9f87-402a-b889-3fc7c4b1891a" config-ref="HTTP_Request_configuration-OfferPrice" path="/api/offers" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : vars.client_id,
+	"client_id" : vars.client_secret
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="2b13f4c4-97fb-4a26-be9e-7517cd8e7485" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload  filter((item, index) -> (item.city  == vars.city))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="_Transform Message" doc:id="06d7556c-0916-4944-8afc-ee50407ba726" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload)>0)
+payload map ( payload01 , indexOfPayload01 ) -> 
+
+	
+	
+	
+	{
+		city: payload01.city default "",
+		message: payload01.DiscountPercent as String ++ " % discount if you book " ++ payload01.noOfSeats ++ " or more tickets."
+		
+	}
+	
+	
+
+
+
+	 
+else
+	 {
+	 	message:"Currently, There is no active offers running in your city."
+	 	
+	 }
+	 ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e7c690ed-78f9-45d4-8e88-9d8dfba36baf" type="ANY" >
+				<ee:transform doc:name="Transform Message" doc:id="a2e98dba-235c-4db8-8b69-52b92a4213a3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="Get:\Price" doc:id="216b25b3-4e1c-487a-8754-c4e94543fd8b" >
+		<http:request method="GET" doc:name="Request" doc:id="70a65536-5c49-41e1-a900-dcf67f2f0be2" config-ref="HTTP_Request_configuration-OfferPrice" path="/api/price" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : vars.client_id,
+	"client_id" : vars.client_secret
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="3c789530-c24a-4e68-9157-7bfd49b5d5fc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload  filter((item, index) -> (item.city  == vars.city and item.theatreID  == vars.theatreID))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="_Transform Message" doc:id="0e7216c1-90a0-4800-b2b2-1e37d73f323a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload)>0)
+payload map ( payload01 , indexOfPayload01 ) -> 
+
+	
+  {
+    "price": 
+      {
+        gold: payload01.categoryPrice.gold,
+        platinum: payload01.categoryPrice.platinum
+      }
+    
+  }
+
+	
+	
+	
+	
+
+
+
+	 
+else
+	 {
+	 	message:"No record found for your search."
+	 	
+	 }
+	 ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0c718911-45a3-4c81-b8b7-438d71bd0c9f" type="ANY" >
+				<ee:transform doc:name="Transform Message" doc:id="eaf86d5c-2c49-43d3-bea9-e6eb6e3e6b54" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

@@ -1,0 +1,9 @@
+[
+  {  "city": "Delhi",
+    "message": "10 % discount on ICICI bank credit card."
+  },
+  {
+    "city": "Mumbai",
+    "message": "20 % discount on booking more than 10 tickets."
+  }
+]

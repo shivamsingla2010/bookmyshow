@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="22c3534b-e426-4b09-a6db-47e9a8fa5976" >
+		<http:listener-connection host="${http.hostname}" port="${http.port}" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="69a2886a-0756-44f5-8de9-802e885c578f" >
+		<http:request-connection host="${http.request.hostname}" port="${http.request.port}" />
+	</http:request-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="36339b97-e974-4826-975d-5f0cea442efa" >
+		<file:connection workingDir="${file.dir}" />
+	</file:config>
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="ad6ba0ab-b377-4729-a9c6-1294d70efa4f" >
+		<wsc:connection wsdlLocation="bookTicket.wsdl" service="${postMovie.service}" port="${postMovie.port}" address="${postMovie.address}"/>
+	</wsc:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="b2e07379-6ae3-4b27-af9b-aaee79bce2b5" file="config.yaml" />
+	<http:request-config name="HTTP_Request_GetMovies" doc:name="HTTP Request configuration" doc:id="72818843-4a13-4f90-8a5f-bf03944fa9b7" >
+		<http:request-connection host="${http.movies.hostname}" port="${http.movies.port}"/>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration-OfferPrice" doc:name="HTTP Request configuration" doc:id="aed40ee8-b03e-4bf5-8620-daf00680f619" >
+		<http:request-connection host="${http.price.hostname}" port="${http.price.port}" />
+	</http:request-config>
+</mule>
