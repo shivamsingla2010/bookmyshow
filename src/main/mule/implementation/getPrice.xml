@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="Get:\getPrice" doc:id="2f0aba34-09f9-4fc0-87f4-6df493059c5d" >
+		<logger level="INFO" doc:name="BackendRequestPayload" doc:id="5c02d1f8-5e27-4be7-a1f5-94ebabb1fbc0" message="#[payload]"/>
+		<http:request method="GET" doc:name="Request" doc:id="322c332b-af16-490c-98e1-683d1143648b" config-ref="HTTP_Request_configuration-OfferPrice" path="/api/price" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : vars.client_id,
+	"client_id" : vars.client_secret
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="BackendResponsePayload" doc:id="b52803f9-fc40-4db4-8215-f27333574381" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="aad8a97c-a4fc-404a-98b1-0341bfcc8403" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload  filter((item, index) -> (item.city  == vars.city and item.theatreID  == vars.theatreID))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="_Transform Message" doc:id="84c75271-78c3-4393-93d2-69450f844362" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload)>0)
+payload map ( payload01 , indexOfPayload01 ) -> 
+
+	
+  {
+    "price": 
+      {
+        gold: payload01.categoryPrice.gold,
+        platinum: payload01.categoryPrice.platinum
+      }
+    
+  }
+
+	
+	
+	
+	
+
+
+
+	 
+else
+	 {
+	 	message:"No record found for your search."
+	 	
+	 }
+	 ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="FinalResponsePayload" doc:id="b3780232-d82b-47c3-a037-d83f56d8f44e" message="#[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cc6264d9-4404-49f0-be44-1cced787ce61" type="ANY" >
+				<logger level="ERROR" doc:name="ErrorPayload" doc:id="06508dfb-c0e9-4a99-afff-6a0fb3a46e59" message="#[error]"/>
+				<ee:transform doc:name="Transform Message" doc:id="9d059a99-5203-4b94-8c1c-adee56342440" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow></mule>

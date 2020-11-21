@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="Get:\getOffers" doc:id="c81626d0-5e7d-4fc7-9107-9e2d4e3ef0a7" >
+		<logger level="INFO" doc:name="BackendRequestPaylaod" doc:id="c67e90cd-1199-4949-bbc0-16cd7fd110da" message="#[payload]"/>
+		<http:request method="GET" doc:name="Request" doc:id="d978193d-f910-4ed0-bfe2-a1bbc357b3df" config-ref="HTTP_Request_configuration-OfferPrice" path="/api/offers" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : vars.client_id,
+	"client_id" : vars.client_secret
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="BackendResponsePaylaod" doc:id="749d187d-9c78-43bc-a915-527fd7db289b" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="ff1a5cc4-0ef5-4b4a-b0e1-fc82cfdb5b7e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload  filter((item, index) -> (item.city  == vars.city))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="_Transform Message" doc:id="49819ce1-f0c7-4a19-8f1b-ad108f83898e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (sizeOf(payload)>0)
+payload map ( payload01 , indexOfPayload01 ) -> 
+
+	
+	
+	
+	{
+		city: payload01.city default "",
+		message: payload01.DiscountPercent as String ++ " % discount if you book " ++ payload01.noOfSeats ++ " or more tickets."
+		
+	}
+	
+	
+
+
+
+	 
+else
+	 {
+	 	message:"Currently, There is no active offers running in your city."
+	 	
+	 }
+	 ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="FinalResponsePayload" doc:id="3f0eb3c6-2824-4799-9f6a-5de33a124dbe" message="#[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d798a83e-929a-4832-b197-f7ac4a57a883" type="ANY" >
+				<logger level="ERROR" doc:name="ErrorPayload" doc:id="e4ea755d-18b9-4133-b44f-4cde734e1ffd" message="#[payload]"/>
+				<ee:transform doc:name="Transform Message" doc:id="70c26840-a2f3-4c6a-89e2-0ebfd8b15204" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow></mule>

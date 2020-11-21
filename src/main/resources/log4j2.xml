@@ -21,7 +21,7 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-         <AsyncRoot level="INFO">
+         <AsyncRoot level="Error">
          <AppenderRef ref="Splunk" />
       </AsyncRoot>
         <!-- Http Logger shows wire traffic on DEBUG. -->
@@ -30,7 +30,7 @@
         <AsyncLogger name="org.mule.extension.http" level="WARN"/>
     
 		<!-- Mule logger -->        
-        <AsyncLogger name="org.mule.runtime.core.internal.processor.LoggerMessageProcessor" level="INFO"/>
+        <AsyncLogger name="org.mule.runtime.core.internal.processor.LoggerMessageProcessor" level="Error"/>
  
       <!--  <AsyncRoot level="INFO">
             <AppenderRef ref="file" />

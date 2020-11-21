@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<flow name="post:\bookMovie">
+		<ee:transform doc:name="Transform Message" doc:id="0799e338-c589-46fc-95b0-ba307140b3c7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://soap.training.mulesoft.com/
+---
+{
+	ns0#bookTicket:return: {
+		city: payload.city,
+		theatreName: payload.theatreName,
+		location: payload.location,
+		movieName: payload.movieName,
+		language: payload.language,
+		showDate: payload.showDate,
+		showTime: payload.showTime,
+		seatType: payload.seatType,
+		noOfSeats: payload.noOfSeats
+		
+		
+		
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="BackendRequestPayload" doc:id="d0b55e4b-7cee-4716-9fad-20d85bcbc135" message='#[payload]'/>
+		<wsc:consume doc:name="Consume" doc:id="9faa4b8b-79c5-4f73-9f5c-97271efeeaf1" config-ref="Web_Service_Consumer_Config" operation="bookTicket"/>
+		<logger level="INFO" doc:name="BackendResponsePayload" doc:id="5ed9a7a8-a410-4df1-84b3-a4e44bd3c369" message='#[payload]'/>
+		<ee:transform doc:name="Transform Message" doc:id="ceee724d-56fe-4fbd-bcc2-adc24d33b971" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://soap.training.mulesoft.com/
+---
+if(vars.inputTickets>=vars.noOfTicket)
+
+{
+	message: (payload.body.ns0#bookTicketResponse.return.message) as String ++ " .Congrats You have got " ++ (vars.percent) as String ++ "% discount on your booking"  default "",
+	eticket: payload.body.ns0#bookTicketResponse.return.eticket default "",
+	ticketNumber: payload.body.ns0#bookTicketResponse.return.ticketNumber default "",
+	totalPrice: (payload.body.ns0#bookTicketResponse.return.totalPrice) - (payload.body.ns0#bookTicketResponse.return.totalPrice) as Number * vars.percent as Number /100  default 0
+}
+
+else
+
+{
+	message: payload.body.ns0#bookTicketResponse.return.message default "",
+	eticket: payload.body.ns0#bookTicketResponse.return.eticket default "",
+	ticketNumber: payload.body.ns0#bookTicketResponse.return.ticketNumber default "",
+	totalPrice: payload.body.ns0#bookTicketResponse.return.totalPrice default 0
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="FinalResponsePayload" doc:id="1f565b45-9de5-4abe-ab9b-39a6598ce244" message='#[payload]'/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ca692044-efb4-4c43-b2de-36cb8bfd7b0b" type="WSC:CONNECTIVITY">
+				<logger level="ERROR" doc:name="ErrorPayload" doc:id="db305a54-57e5-445b-a49a-ebf7359babbb" message="#[error]" />
+				<ee:transform doc:name="Transform Message" doc:id="53c81365-cf34-4c3b-90aa-25d9e140f942" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="6606b2ae-19b6-4346-9fb1-5d0c25b059e6" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="a6bdbc5d-7c62-4425-aaaf-bab325a2a826" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="payload" doc:id="fae74e43-4bd5-4987-9113-3dbb62c8b0df" message="#[payload]"/>
+			</on-error-propagate>
+		</error-handler>
+    </flow></mule>

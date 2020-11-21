@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	 <flow name="getTheatres" doc:id="2040e4b8-ecd7-46a6-9b28-8d24e4cb50b9" >
+		<logger level="INFO" doc:name="BackendRequestPayload" doc:id="69f5c81e-9248-45bd-b108-110354ea1e72" message="#[payload]"/>
+		<http:request method="GET" doc:name="Request" doc:id="aace88b1-e9fe-412c-be38-05a3bdbda4be" path="/api/theatre" config-ref="HTTP_Request_GetMovies">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : vars.client_id,
+	"client_id" : vars.client_secret
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="BackendResponsePayload" doc:id="b32832f4-795f-4f39-b74c-04a2d0a6af40" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="693ccdd1-4d2d-4ed3-8d3a-13dc7fc28f30" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(vars.language == "noLanguage")
+payload filter ((item, index) -> (item.city  == vars.city and item.movieName  == vars.movieName))
+else
+payload filter ((item, index) -> (item.city  == vars.city and item.movieName  == vars.movieName and item.language  == vars.language))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="f7f89f10-37dd-4eaf-8fe1-e6b8140edead" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(sizeOf(payload)>0)
+payload map ( payload01 , indexOfPayload01 ) -> {
+	id: payload01.ID,
+	movieName: payload01.movieName default "",
+	language: payload01.language default "",
+	name: payload01.name default "",
+	availability: payload01.showtimes map ( payload02, index02) -> {
+            showtime: payload02.time,
+            availableSeats: payload02.seats
+    },
+	date: payload01.date as String default "",
+	location: payload01.location default "",
+	city: payload01.city default ""
+}
+else
+{
+	message: "No theatre found for your search."
+}
+
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="FinalResponsePayload" doc:id="15b79d8a-a736-43bd-939b-640f77748172" message="#[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="82d43af2-9f26-4011-aa68-075b4a56888b" type="ANY">
+				<logger level="ERROR" doc:name="ErrorPaylaod" doc:id="ca0d40de-28fe-4b1b-a04f-2ace57941e52" message="#[error]"/>
+				<ee:transform doc:name="Transform Message" doc:id="18539217-5cf0-4d12-bc1d-7ef8b9822ee2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "There is some technical issue at our end. Our support team is looking into it. Please try again after sometime.",
+	
+	errorDescription: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow></mule>

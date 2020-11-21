@@ -1,0 +1,33 @@
+http:
+  port: "8085"
+  hostname: "localhost"
+  request:
+       hostname: "localhost"
+       port: "8082"
+  movies:
+       hostname: "movietheatre-system-api.us-e2.cloudhub.io"
+       port: "80"
+  price:
+       hostname: "priceoffers-system-api.us-e2.cloudhub.io"
+       port: "80"
+getMovie:
+  hostname: "localhost"
+  port: "8085"
+  basepath: "/"
+  protocol: "HTTP"
+  
+file:
+   dir: "E:/05_BookMyShow/02_SampleData/02_Data/" 
+   filePath: "Offers.json"
+
+discount:
+    noOfTicket: "10"
+    percent: "10"   
+
+   
+         
+postMovie:
+  wsdl: "http://mu.learn.mulesoft.com/delta?wsdl"
+  service: "TicketServiceService"
+  port: "TicketServicePort"
+  address: "http://localhost:8083/mockTicketServiceServiceSoapBinding"
