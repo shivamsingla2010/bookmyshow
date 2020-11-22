@@ -15,15 +15,15 @@ ns ns0 http://soap.training.mulesoft.com/
 ---
 {
 	ns0#bookTicket:return: {
-		city: payload.city,
-		theatreName: payload.theatreName,
-		location: payload.location,
-		movieName: payload.movieName,
-		language: payload.language,
-		showDate: payload.showDate,
-		showTime: payload.showTime,
-		seatType: payload.seatType,
-		noOfSeats: payload.noOfSeats
+		city: message.payload.city,
+		theatreName: message.payload.theatreName,
+		location: message.payload.location,
+		movieName: message.payload.movieName,
+		language: message.payload.language,
+		showDate: message.payload.showDate,
+		showTime: message.payload.showTime,
+		seatType: message.payload.seatType,
+		noOfSeats: message.payload.noOfSeats
 		
 		
 		

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
     
-    <apikit:config name="bookmyshow-api-config" api="resource::8fdba588-47ba-4f34-927d-35c51e957ce4:bookmyshow-new-api:1.0.4:raml:zip:bookmyshow-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="setVariable" doc:id="3ee26549-0444-40a6-b02d-31cf41cd51c9" >
 		<set-variable value='#[message.attributes.queryParams.language default "noLanguage"]' doc:name="language" doc:id="cf6a1eda-51ee-46ed-b92d-de23f34ba561" variableName="language"/>
 		<set-variable value="#[message.attributes.queryParams.'movie-name' default &quot;noMovie&quot;]" doc:name="movieName" doc:id="a2b4ff25-3621-4a4f-815b-87151e43cc7a" variableName="movieName"/>

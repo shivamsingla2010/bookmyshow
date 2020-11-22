@@ -1,0 +1,26 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+      id:
+        type: integer
+      movieName:
+        type: string
+      language:
+        type: string
+      name:
+        type: string
+      avialability:
+        type: array
+        items:
+          properties:
+            showTime:
+              type: number
+
+            avialableSeats:
+              type: integer
+
+      date:
+         type: date-only
+      location: string
+      city: string 
+      

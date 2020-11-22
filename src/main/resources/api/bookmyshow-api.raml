@@ -1,0 +1,260 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/586b1fd6-e9be-4396-af70-0a11e27da47d/ # 
+title: BookMyShow-API
+description: This API is used to Book movie ticket.
+
+
+traits:
+  client-id-required:
+    headers:
+      client_id: 
+      client_secret:
+
+types:
+  GetPrice: !include /DataType/GetPricedataType.raml
+  GetTheatre: !include /DataType/GetTheatredataType.raml
+  GetAllMovies: !include /DataType/GetAllMovies-type.raml
+  BookMovie: !include /DataType/BookMovie-type.raml
+
+
+/movies:
+  description: This is used to get the list of movies.
+  displayName:  Get movies list
+  get:
+    is:
+      - client-id-required
+    displayName: Get All movies list
+    description: This is used to fetch movies based on the input parameters
+    queryParameters:
+      language:
+       required: false
+      city:
+        required: true
+      movie-name:
+        required: false
+
+    responses:
+      200:
+        body:
+          application/json:
+            type: GetAllMovies[]
+            examples:
+              output: !include /Examples/GetAllMovies.raml
+      400:
+            body:
+                  application/json:
+                        example:
+                          {
+                            message: "Bad Request. Please check input data."
+                          }
+
+      401:
+            body:
+                  application/json:
+                        example:
+                          {
+                            message: "Unauthorized user. Please check client-id and client-secret."
+                          }
+      
+      404:
+          body:
+                  application/json:
+                        example:
+                          {
+                            message: "Resource not found. Please check the URL."
+                          }                              
+      500:
+          body:
+                application/json:
+                      example:
+                          {message:"Service is down.. Please try after sometime."}                         
+
+/offers:
+  description: This is used to get the list of active offers in a current city.
+  displayName:  Get Offers detail
+  
+  get:
+    displayName: Get Active Offers
+    is:
+      - client-id-required
+    queryParameters:
+      city:
+        required: true
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+             [ {
+               "city": "Delhi",
+             "message": "10 % discount on ICICI bank credit card."
+                            
+             },
+              {
+                "city": "Mumbai",
+             "message": "20 % discount on booking more than 10 tickets."
+                            
+             }
+             ]
+      400:
+            body:
+                  application/json:
+                        example:
+                          {
+                            message: "Bad Request. Please check input data."
+                          }
+
+      401:
+            body:
+                  application/json:
+                        example:
+                          {
+                            message: "Unauthorized user. Please check client-id and client-secret."
+                          }
+      
+      404:
+          body:
+                  application/json:
+                        example:
+                          {
+                            message: "Resource not found. Please check the URL."
+                          }     
+      500:
+          body:
+                application/json:
+                      example:
+                          {message:"Service is down.. Please try after sometime."}     
+
+/price:
+  description: This is used to get the price of a movie in a theatre.
+  displayName:  Get price list
+  get:
+    queryParameters:
+      theatreID:
+        required: true
+      city:
+        required: true
+    responses:
+      200:
+        body:
+          application/json:
+            type: GetPrice[]
+            examples:
+              output: !include /Examples/GetPriceexample.raml
+                       
+          
+/theatres:
+  description: This is used to book a movie ticket.
+  displayName: Book a movie ticket
+  get:
+    
+    is:
+      - client-id-required
+    displayName: Get All theatres
+    description: This is used to fetch theatres list based on the input parameters
+    queryParameters:
+      language:
+       required: false
+      city:
+        required: true
+      movie-name:
+        required: true
+
+    responses:
+      200:
+        body:
+          application/json:
+            type: GetTheatre[]
+            examples:
+              output: !include /Examples/GetTheatreExample.raml
+      400:
+            body:
+                  application/json:
+                        example:
+                          {
+                            message: "Bad Request. Please check input data."
+                          }
+
+      401:
+            body:
+                  application/json:
+                        example:
+                          {
+                            message: "Unauthorized user. Please check client-id and client-secret."
+                          }
+      
+      404:
+          body:
+                  application/json:
+                        example:
+                          {
+                            message: "Resource not found. Please check the URL."
+                          }                              
+      500:
+          body:
+                application/json:
+                      example:
+                          {message:"Service is down.. Please try after sometime."} 
+  
+  /{ID}:
+    displayName: Theatre ID.
+
+    
+
+    is:
+      - client-id-required
+    post:
+      description: This method is used to book a movie ticket.
+      displayName: Book tickets
+      body:
+        application/json:
+          type: BookMovie
+          examples:
+            input: !include /Examples/BookMovieExample.raml
+            
+         
+            
+
+      responses:
+        201:
+          body:
+            application/json:
+              example:
+                {
+
+                  message: "Ticket Booked successfully (not really)!!",
+                  eticket: "tick:234",
+                  ticketNumber: "C1,C2,C3,C4",
+                  actualtotalPrice: 2000,
+                  dicountPrice: 1800
+                }
+        400:
+            body:
+                  application/json:
+                        example:
+                          {
+                            message: "Bad Request. Please check input data."
+                          }
+
+        401:
+            body:
+                  application/json:
+                        example:
+                          {
+                            message: "Unauthorized user. Please check client-id and client-secret."
+                          }
+      
+        404:
+          body:
+                  application/json:
+                        example:
+                          {
+                            message: "Resource not found. Please check the URL."
+                          }
+        500:
+          body:
+                application/json:
+                      example:
+                          {message:"Service is down.. Please try after sometime."} 
+               
+      

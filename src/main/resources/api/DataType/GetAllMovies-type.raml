@@ -1,0 +1,51 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  id:
+    type: integer
+    description: Movie Id
+    displayName: Movie Id
+
+  movieName:
+    type: string
+    description: Movie Name
+    displayName:  Movie Name
+  
+  releaseDate:
+    type: date-only
+    description: Release Date of movie
+    displayName: Release Date of movie
+
+  language? :
+     type: string
+     description: Movie language
+     displayName: Movie language
+  rating?:
+     type: number
+     description: Movie rating
+     displayName: Movie rating
+
+  votes?:
+    type: integer
+    description: Number of people gave rating
+    displayName: No of User voted
+
+  certificate?:
+     type: string
+     description: Movie Certificate
+     displayName: Movie certificate
+
+  movieType?:
+     type: string
+     description: Movie catogary
+     displayName: Movie catogary
+      
+  duration?:
+     type: string
+     description: Movie duration
+     displayName: Movie duration
+  city:
+    type: string
+    description: City name
+    displayName: City Name
+

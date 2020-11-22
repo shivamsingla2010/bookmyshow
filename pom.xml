@@ -85,13 +85,7 @@
             <version>1.8.2</version>
             <classifier>mule-plugin</classifier>
         </dependency>
-    	<dependency>
-            <groupId>8fdba588-47ba-4f34-927d-35c51e957ce4</groupId>
-            <artifactId>bookmyshow-new-api</artifactId>
-            <version>1.0.4</version>
-            <classifier>raml</classifier>
-            <type>zip</type>
-        </dependency>
+    
     </dependencies>
 
 	<repositories>
