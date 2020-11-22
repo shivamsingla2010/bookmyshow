@@ -22,7 +22,7 @@ http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/
 	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="ad6ba0ab-b377-4729-a9c6-1294d70efa4f" >
 		<wsc:connection wsdlLocation="bookTicket.wsdl" service="${postMovie.service}" port="${postMovie.port}" address="${postMovie.address}"/>
 	</wsc:config>
-	<configuration-properties doc:name="Configuration properties" doc:id="b2e07379-6ae3-4b27-af9b-aaee79bce2b5" file="book-my-show-${env}-config.yaml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="b2e07379-6ae3-4b27-af9b-aaee79bce2b5" file="book-my-show-Dev-config.yaml" />
 	<http:request-config name="HTTP_Request_GetMovies" doc:name="HTTP Request configuration" doc:id="72818843-4a13-4f90-8a5f-bf03944fa9b7" >
 		<http:request-connection host="${http.movies.hostname}" port="${http.movies.port}"/>
 	</http:request-config>
